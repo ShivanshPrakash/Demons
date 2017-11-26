@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Demons</string>
+    <string name="addbtn">Add New Task</string>
+    <string name="DELETE">DELETE</string>
+    <string name="Example">Example</string>
+    <string name="imgdes">COOL</string>
+</resources>
