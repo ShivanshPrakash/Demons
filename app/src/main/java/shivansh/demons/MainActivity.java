@@ -1,46 +1,40 @@
 package shivansh.demons;
 
 import android.content.DialogInterface;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     Database dbHelper;
-    ArrayAdapter<String> mAdapter;
-    ListView Task;
+    private MyAdapter mAdapter;
+    private RecyclerView Task;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         dbHelper = new Database(this);
-        Task = (ListView) findViewById(R.id.Task);
         loadTaskList();
     }
 
-    private void loadTaskList() {
+    public void loadTaskList() {
         ArrayList<String> tasklist = dbHelper.getTaskList();
-        if(mAdapter==null){
-            mAdapter = new ArrayAdapter<String>(this,R.layout.row,R.id.task_title,tasklist);
-            Task.setAdapter(mAdapter);
-        }
-        else
-        {
-            mAdapter.clear();
-            mAdapter.addAll(tasklist);
-            mAdapter.notifyDataSetChanged();
+        int NUM_LIST_ITEMS = tasklist.size();
+       if(!tasklist.isEmpty()){
+           Task = (RecyclerView) findViewById(R.id.Task);
+           LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+           Task.setLayoutManager(layoutManager);
+           Task.setHasFixedSize(true);
+           mAdapter = new MyAdapter(NUM_LIST_ITEMS,tasklist,dbHelper,this);
+           Task.setAdapter(mAdapter);
         }
     }
     @Override
@@ -68,15 +62,20 @@ public class MainActivity extends AppCompatActivity {
                         .setNegativeButton("Cancel",null)
                         .create();
                 dialog.show();
+                loadTaskList();
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
+    /*
     public  void deleteTask(View view){
         View parent  = (View)view.getParent();
+        int val = parent.getId();
+        Log.d("Dekho...",val+" ");
         TextView taskTextV = (TextView)findViewById(R.id.task_title);
         String task  = String.valueOf(taskTextV.getText());
         dbHelper.deleteTask(task);
         loadTaskList();
     }
+    */
 }
