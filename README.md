@@ -1,2 +1,2 @@
 # Demons
-In this app I tried to implement a collapsing toolbar with a ListView that displays a TextView along with a button to delete the TextView. Later I replaced the list view with a RecyclerView having a adapter that reads data from a sql database.
+An app that displays your list of tasks or goals that you want to achieve. Once you reach your goal, clear it out and sit back and enjoy you sense of accomplishment. And the app also contains an imageView which can be set to any image of your choice in case you need some pictorial motivation. :) 
