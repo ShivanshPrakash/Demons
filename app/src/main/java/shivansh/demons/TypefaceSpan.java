@@ -3,9 +3,9 @@ package shivansh.demons;
 import android.content.Context;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.support.v4.util.LruCache;
 import android.text.TextPaint;
 import android.text.style.MetricAffectingSpan;
+import android.util.LruCache;
 
 public class TypefaceSpan extends MetricAffectingSpan {
     private static LruCache<String, Typeface> sTypefaceCache = new LruCache<String, Typeface>(12);

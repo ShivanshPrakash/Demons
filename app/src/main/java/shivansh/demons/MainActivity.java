@@ -12,19 +12,18 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.text.Spannable;
-import android.text.SpannableString;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
@@ -42,14 +41,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        SpannableString s = new SpannableString("Demons");
-        s.setSpan(new shivansh.demons.TypefaceSpan(this, "Courgette-Regular.ttf"), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-// Update the action bar title with the TypefaceSpan instance
-        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle(s);
         try {
             mContext = this;
-            ImageView imageView = (ImageView) findViewById(R.id.bgheader);
+            ImageView imageView = findViewById(R.id.bgheader);
             String path = getPreference(mContext, "imagePath");
 
             if (!(path == null || path.length() == 0 || path.equalsIgnoreCase(""))) {
@@ -57,10 +51,8 @@ public class MainActivity extends AppCompatActivity {
                 options.inSampleSize = 4;
                 Bitmap bitmap = BitmapFactory.decodeFile(path, options);
                 imageView.setImageBitmap(bitmap);
-                //imageView.setImageBitmap(getScaledBitmap(path, 800, 800));
             }
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         dbHelper = new Database(this);
@@ -71,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> tasklist = dbHelper.getTaskList();
         int NUM_LIST_ITEMS = tasklist.size();
        if(!tasklist.isEmpty()){
-           Task = (RecyclerView) findViewById(R.id.Task);
+           Task = findViewById(R.id.Task);
            LinearLayoutManager layoutManager = new LinearLayoutManager(this);
            Task.setLayoutManager(layoutManager);
            Task.setHasFixedSize(true);
@@ -116,17 +108,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-    /*
-    public  void deleteTask(View view){
-        View parent  = (View)view.getParent();
-        int val = parent.getId();
-        Log.d("Dekho...",val+" ");
-        TextView taskTextV = (TextView)findViewById(R.id.task_title);
-        String task  = String.valueOf(taskTextV.getText());
-        dbHelper.deleteTask(task);
-        loadTaskList();
-    }
-    */
+
     private boolean checkIfAlreadyhavePermission() {
         int result = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
         return result == PackageManager.PERMISSION_GRANTED;
@@ -166,13 +148,11 @@ public class MainActivity extends AppCompatActivity {
                 imgDecodableString = cursor.getString(columnIndex);
                 cursor.close();
                 setPreference(mContext, imgDecodableString, "imagePath");
-                ImageView imgView = (ImageView) findViewById(R.id.bgheader);
-                // Set the Image in ImageView after decoding the String
+                ImageView imgView = findViewById(R.id.bgheader);
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inSampleSize = 4;
                 Bitmap bitmap = BitmapFactory.decodeFile(imgDecodableString, options);
                 imgView.setImageBitmap(bitmap);
-                //BitmapFactory.decodeFile(imgDecodableString)
             } else {
                 Toast.makeText(this, "You haven't picked Image", Toast.LENGTH_LONG).show();
             }
