@@ -33,10 +33,11 @@ public class MainActivity extends AppCompatActivity {
     Database dbHelper;
     String imgDecodableString;
     private MyAdapter mAdapter;
-    private RecyclerView Task;
+    private RecyclerView taskList;
     private String PREFS_NAME = "image";
     private Context mContext;
     private String[] galleryPermissions = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,30 +63,31 @@ public class MainActivity extends AppCompatActivity {
     public void loadTaskList() {
         ArrayList<String> tasklist = dbHelper.getTaskList();
         int NUM_LIST_ITEMS = tasklist.size();
-       if(!tasklist.isEmpty()){
-           Task = findViewById(R.id.Task);
-           LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-           Task.setLayoutManager(layoutManager);
-           Task.setHasFixedSize(true);
-           mAdapter = new MyAdapter(NUM_LIST_ITEMS,tasklist,dbHelper,this);
-           Task.setAdapter(mAdapter);
+        if (!tasklist.isEmpty()) {
+            taskList = findViewById(R.id.Task);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+            taskList.setLayoutManager(layoutManager);
+            mAdapter = new MyAdapter(NUM_LIST_ITEMS, tasklist, dbHelper);
+            taskList.setAdapter(mAdapter);
         }
     }
+
     @Override
-    public  boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.menu,menu);
-        return  super.onCreateOptionsMenu(menu);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu);
     }
+
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        switch (item.getItemId()){
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
             case R.id.add_task:
                 final EditText taskEditText = new EditText(this);
                 AlertDialog dialog = new AlertDialog.Builder(this)
                         .setTitle("Add New Task")
                         .setMessage("What's your new demon")
                         .setView(taskEditText)
-                        .setPositiveButton("Add", new DialogInterface.OnClickListener(){
+                        .setPositiveButton("Add", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String task = String.valueOf(taskEditText.getText());
@@ -93,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                                 loadTaskList();
                             }
                         })
-                        .setNegativeButton("Cancel",null)
+                        .setNegativeButton("Cancel", null)
                         .create();
                 dialog.show();
                 loadTaskList();

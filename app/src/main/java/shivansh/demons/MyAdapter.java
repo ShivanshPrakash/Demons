@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -19,32 +20,31 @@ import java.util.ArrayList;
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     private static final String TAG = MyAdapter.class.getSimpleName();
     private int mNumberItems;
-    ArrayList<String> tasklist;
-    MainActivity mainActivity;
-    Database dbHelper;
-    public MyAdapter(int numberOfItems, ArrayList<String> TaskList, Database dbHelper, MainActivity mainActivity) {
+    private ArrayList<String> taskList;
+    private Database dbHelper;
+
+    MyAdapter(int numberOfItems, ArrayList<String> TaskList, Database dbHelper) {
         mNumberItems = numberOfItems;
-        tasklist = TaskList;
-        this.dbHelper=dbHelper;
-        this.mainActivity=mainActivity;
+        taskList = TaskList;
+        this.dbHelper = dbHelper;
     }
+
+    @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         Context context = viewGroup.getContext();
         int layoutIdForListItem = R.layout.row;
         LayoutInflater inflater = LayoutInflater.from(context);
-        boolean shouldAttachToParentImmediately = false;
 
-        View view = inflater.inflate(layoutIdForListItem, viewGroup, shouldAttachToParentImmediately);
-        MyViewHolder viewHolder = new MyViewHolder(view);
-        return viewHolder;
+        View view = inflater.inflate(layoutIdForListItem, viewGroup, false);
+        return new MyViewHolder(view);
     }
 
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         Log.d(TAG, "#" + position);
-        holder.bind(tasklist.get(position));
+        holder.bind(taskList.get(position));
     }
 
     @Override
@@ -55,19 +55,24 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     class MyViewHolder extends RecyclerView.ViewHolder {
         TextView listItemNumberView;
         ImageButton button;
-        public MyViewHolder(View itemView) {
+
+        MyViewHolder(View itemView) {
             super(itemView);
-            listItemNumberView = (TextView) itemView.findViewById(R.id.task_title);
-            button = (ImageButton) itemView.findViewById(R.id.deleteBtn);
+            listItemNumberView = itemView.findViewById(R.id.task_title);
+            button = itemView.findViewById(R.id.deleteBtn);
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     String task = String.valueOf(listItemNumberView.getText());
                     dbHelper.deleteTask(task);
-                    mainActivity.loadTaskList();
+                    mNumberItems--;
+                    int removedIndex = taskList.indexOf(task);
+                    taskList.remove(removedIndex);
+                    notifyItemRemoved(removedIndex);
                 }
             });
         }
+
         void bind(String todo) {
             listItemNumberView.setText(todo);
         }
