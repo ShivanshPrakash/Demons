@@ -5,10 +5,10 @@
         android:id="@+id/add_task"
         android:icon="@mipmap/note_icon"
         android:title="@string/addbtn"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/change_pic"
         android:icon="@mipmap/cam_icon"
-        android:title="Change Wallpaper"
+        android:title="@string/change_wallpaper"
         app:showAsAction="always" />
 </menu>

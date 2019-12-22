@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -31,9 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static int RESULT_LOAD_IMG = 1;
     Database dbHelper;
-    String imgDecodableString;
-    private MyAdapter mAdapter;
-    private RecyclerView taskList;
+    String imgString;
     private String PREFS_NAME = "image";
     private Context mContext;
     private String[] galleryPermissions = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
@@ -45,13 +44,15 @@ public class MainActivity extends AppCompatActivity {
         try {
             mContext = this;
             ImageView imageView = findViewById(R.id.bgheader);
-            String path = getPreference(mContext, "imagePath");
+            String path = getPreference(mContext);
 
-            if (!(path == null || path.length() == 0 || path.equalsIgnoreCase(""))) {
+            if (!(path == null || path.length() == 0)) {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inSampleSize = 4;
                 Bitmap bitmap = BitmapFactory.decodeFile(path, options);
                 imageView.setImageBitmap(bitmap);
+            } else {
+                imageView.setImageResource(R.drawable.mm);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -64,10 +65,10 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> tasklist = dbHelper.getTaskList();
         int NUM_LIST_ITEMS = tasklist.size();
         if (!tasklist.isEmpty()) {
-            taskList = findViewById(R.id.Task);
+            RecyclerView taskList = findViewById(R.id.Task);
             LinearLayoutManager layoutManager = new LinearLayoutManager(this);
             taskList.setLayoutManager(layoutManager);
-            mAdapter = new MyAdapter(NUM_LIST_ITEMS, tasklist, dbHelper);
+            MyAdapter mAdapter = new MyAdapter(NUM_LIST_ITEMS, tasklist, dbHelper);
             taskList.setAdapter(mAdapter);
         }
     }
@@ -101,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 loadTaskList();
                 return true;
             case R.id.change_pic:
-                if (!checkIfAlreadyhavePermission()) {
+                if (!checkIfAlreadyHavePermission()) {
                     ActivityCompat.requestPermissions(this, galleryPermissions, 1);
                 } else {
                     Intent galleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -111,24 +112,21 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private boolean checkIfAlreadyhavePermission() {
+    private boolean checkIfAlreadyHavePermission() {
         int result = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
         return result == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case 1: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Intent galleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                    startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
-                } else {
-                    Toast.makeText(this, "Please give your permission.", Toast.LENGTH_LONG).show();
-                }
-                break;
+        if (requestCode == 1) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
+            } else {
+                Toast.makeText(this, "Please give your permission.", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -143,18 +141,23 @@ public class MainActivity extends AppCompatActivity {
                 Uri selectedImage = data.getData();
                 String[] filePathColumn = {MediaStore.Images.Media.DATA};
                 // Get the cursor
-                Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+                Cursor cursor = null;
+                if (selectedImage != null) {
+                    cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+                }
                 // Move to first row
-                cursor.moveToFirst();
-                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                imgDecodableString = cursor.getString(columnIndex);
-                cursor.close();
-                setPreference(mContext, imgDecodableString, "imagePath");
-                ImageView imgView = findViewById(R.id.bgheader);
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inSampleSize = 4;
-                Bitmap bitmap = BitmapFactory.decodeFile(imgDecodableString, options);
-                imgView.setImageBitmap(bitmap);
+                if (cursor != null) {
+                    cursor.moveToFirst();
+                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                    imgString = cursor.getString(columnIndex);
+                    cursor.close();
+                    setPreference(mContext, imgString);
+                    ImageView imgView = findViewById(R.id.bgheader);
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inSampleSize = 4;
+                    Bitmap bitmap = BitmapFactory.decodeFile(imgString, options);
+                    imgView.setImageBitmap(bitmap);
+                }
             } else {
                 Toast.makeText(this, "You haven't picked Image", Toast.LENGTH_LONG).show();
             }
@@ -163,15 +166,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void setPreference(Context c, String value, String key) {
+    void setPreference(Context c, String value) {
         SharedPreferences settings = c.getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
-        editor.putString(key, value);
+        editor.putString("imagePath", value);
         editor.apply();
     }
 
-    String getPreference(Context c, String key) {
+    String getPreference(Context c) {
         SharedPreferences settings = c.getSharedPreferences(PREFS_NAME, 0);
-        return settings.getString(key, "");
+        return settings.getString("imagePath", "");
     }
 }
