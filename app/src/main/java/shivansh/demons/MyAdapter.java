@@ -12,6 +12,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import shivansh.demons.RoomUtils.AppDatabase;
 
 /**
  * Created by Shivansh on 17/11/26.
@@ -19,13 +22,11 @@ import java.util.ArrayList;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     private static final String TAG = MyAdapter.class.getSimpleName();
-    private int mNumberItems;
-    private ArrayList<String> taskList;
-    private Database dbHelper;
+    private ArrayList<Integer> taskList;
+    private AppDatabase dbHelper;
 
-    MyAdapter(int numberOfItems, ArrayList<String> TaskList, Database dbHelper) {
-        mNumberItems = numberOfItems;
-        taskList = TaskList;
+    MyAdapter(List<Integer> taskList, AppDatabase dbHelper) {
+        this.taskList = (ArrayList<Integer>) taskList;
         this.dbHelper = dbHelper;
     }
 
@@ -42,14 +43,22 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
+    public void onBindViewHolder(final MyViewHolder holder, final int position) {
         Log.d(TAG, "#" + position);
-        holder.bind(taskList.get(position));
+        holder.bind(dbHelper.taskDao().getTaskById(taskList.get(position)));
+        holder.button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dbHelper.taskDao().setStatus(false, taskList.get(holder.getAdapterPosition()));
+                taskList.remove(holder.getAdapterPosition());
+                notifyItemRemoved(holder.getAdapterPosition());
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return mNumberItems;
+        return taskList.size();
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder {
@@ -60,17 +69,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
             super(itemView);
             listItemNumberView = itemView.findViewById(R.id.task_title);
             button = itemView.findViewById(R.id.deleteBtn);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String task = String.valueOf(listItemNumberView.getText());
-                    dbHelper.deleteTask(task);
-                    mNumberItems--;
-                    int removedIndex = taskList.indexOf(task);
-                    taskList.remove(removedIndex);
-                    notifyItemRemoved(removedIndex);
-                }
-            });
         }
 
         void bind(String todo) {

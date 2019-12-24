@@ -26,12 +26,16 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
+import java.lang.ref.WeakReference;
+import java.util.List;
+
+import shivansh.demons.RoomUtils.AppDatabase;
+import shivansh.demons.RoomUtils.Tasks;
 
 public class MainActivity extends AppCompatActivity {
 
     private static int RESULT_LOAD_IMG = 1;
-    Database dbHelper;
+    AppDatabase database;
     String imgString;
     private String PREFS_NAME = "image";
     private Context mContext;
@@ -57,18 +61,17 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        dbHelper = new Database(this);
+        database = AppDatabase.getInstance(new WeakReference<>(getApplicationContext()));
         loadTaskList();
     }
 
     public void loadTaskList() {
-        ArrayList<String> tasklist = dbHelper.getTaskList();
-        int NUM_LIST_ITEMS = tasklist.size();
-        if (!tasklist.isEmpty()) {
+        List<Integer> tasks = database.taskDao().getAll();
+        if (!tasks.isEmpty()) {
             RecyclerView taskList = findViewById(R.id.Task);
             LinearLayoutManager layoutManager = new LinearLayoutManager(this);
             taskList.setLayoutManager(layoutManager);
-            MyAdapter mAdapter = new MyAdapter(NUM_LIST_ITEMS, tasklist, dbHelper);
+            MyAdapter mAdapter = new MyAdapter(tasks, database);
             taskList.setAdapter(mAdapter);
         }
     }
@@ -91,8 +94,10 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("Add", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                String task = String.valueOf(taskEditText.getText());
-                                dbHelper.insertNew(task);
+                                Tasks task = new Tasks();
+                                task.name = String.valueOf(taskEditText.getText());
+                                task.status = true;
+                                database.taskDao().insert(task);
                                 loadTaskList();
                             }
                         })
