@@ -21,7 +21,6 @@ public abstract class AppDatabase extends RoomDatabase {
         if (sInstance == null) {
             sInstance = Room
                     .databaseBuilder(contextWeakReference.get().getApplicationContext(), AppDatabase.class, "demon_db")
-                    .allowMainThreadQueries()
                     .build();
         }
         return sInstance;

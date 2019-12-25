@@ -1,4 +1,4 @@
-package shivansh.demons;
+package shivansh.demons.Adapters;
 
 import android.content.Context;
 import android.util.Log;
@@ -14,7 +14,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-import shivansh.demons.RoomUtils.AppDatabase;
+import shivansh.demons.R;
+import shivansh.demons.RoomUtils.Tasks;
+import shivansh.demons.TasksViewModel;
 
 /**
  * Created by Shivansh on 17/11/26.
@@ -22,12 +24,16 @@ import shivansh.demons.RoomUtils.AppDatabase;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     private static final String TAG = MyAdapter.class.getSimpleName();
-    private ArrayList<Integer> taskList;
-    private AppDatabase dbHelper;
+    private ArrayList<Tasks> taskList;
+    private TasksViewModel tasksViewModel;
 
-    MyAdapter(List<Integer> taskList, AppDatabase dbHelper) {
-        this.taskList = (ArrayList<Integer>) taskList;
-        this.dbHelper = dbHelper;
+    public MyAdapter(List<Tasks> taskList, TasksViewModel tasksViewModel) {
+        this.taskList = (ArrayList<Tasks>) taskList;
+        this.tasksViewModel = tasksViewModel;
+    }
+
+    public void setTaskList(ArrayList<Tasks> taskList) {
+        this.taskList = taskList;
     }
 
     @NonNull
@@ -45,11 +51,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
         Log.d(TAG, "#" + position);
-        holder.bind(dbHelper.taskDao().getTaskById(taskList.get(position)));
+        holder.bind(taskList.get(position).name);
         holder.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dbHelper.taskDao().setStatus(false, taskList.get(holder.getAdapterPosition()));
+                tasksViewModel.setInactive(taskList.get(holder.getAdapterPosition()).id);
                 taskList.remove(holder.getAdapterPosition());
                 notifyItemRemoved(holder.getAdapterPosition());
             }
