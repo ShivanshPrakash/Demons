@@ -23,18 +23,26 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import shivansh.demons.Adapters.MyAdapter;
+import shivansh.demons.RoomUtils.Tasks;
 
 public class MainActivity extends AppCompatActivity {
 
     private static int RESULT_LOAD_IMG = 1;
-    Database dbHelper;
     String imgString;
     private String PREFS_NAME = "image";
     private Context mContext;
+    private TasksViewModel tasksViewModel;
+    private MyAdapter mAdapter;
+    private RecyclerView taskList;
     private String[] galleryPermissions = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
 
     @Override
@@ -57,20 +65,28 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        dbHelper = new Database(this);
-        loadTaskList();
+
+        taskList = findViewById(R.id.Task);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        taskList.setLayoutManager(layoutManager);
+
+        loadViewModels();
     }
 
-    public void loadTaskList() {
-        ArrayList<String> tasklist = dbHelper.getTaskList();
-        int NUM_LIST_ITEMS = tasklist.size();
-        if (!tasklist.isEmpty()) {
-            RecyclerView taskList = findViewById(R.id.Task);
-            LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-            taskList.setLayoutManager(layoutManager);
-            MyAdapter mAdapter = new MyAdapter(NUM_LIST_ITEMS, tasklist, dbHelper);
-            taskList.setAdapter(mAdapter);
-        }
+    void loadViewModels() {
+        tasksViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()).create(TasksViewModel.class);
+        tasksViewModel.getAllTaskId().observe(this, new Observer<List<Tasks>>() {
+            @Override
+            public void onChanged(List<Tasks> tasks) {
+                if (mAdapter == null) {
+                    mAdapter = new MyAdapter(tasksViewModel.getAllTaskId().getValue(), tasksViewModel);
+                    taskList.setAdapter(mAdapter);
+                } else {
+                    mAdapter.setTaskList((ArrayList<Tasks>) tasks);
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
+        });
     }
 
     @Override
@@ -91,15 +107,12 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("Add", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                String task = String.valueOf(taskEditText.getText());
-                                dbHelper.insertNew(task);
-                                loadTaskList();
+                                tasksViewModel.addTask(String.valueOf(taskEditText.getText()));
                             }
                         })
                         .setNegativeButton("Cancel", null)
                         .create();
                 dialog.show();
-                loadTaskList();
                 return true;
             case R.id.change_pic:
                 if (!checkIfAlreadyHavePermission()) {

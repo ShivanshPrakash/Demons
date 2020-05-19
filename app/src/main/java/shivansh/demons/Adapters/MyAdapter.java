@@ -1,4 +1,4 @@
-package shivansh.demons;
+package shivansh.demons.Adapters;
 
 import android.content.Context;
 import android.util.Log;
@@ -12,6 +12,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import shivansh.demons.R;
+import shivansh.demons.RoomUtils.Tasks;
+import shivansh.demons.TasksViewModel;
 
 /**
  * Created by Shivansh on 17/11/26.
@@ -19,14 +24,16 @@ import java.util.ArrayList;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     private static final String TAG = MyAdapter.class.getSimpleName();
-    private int mNumberItems;
-    private ArrayList<String> taskList;
-    private Database dbHelper;
+    private ArrayList<Tasks> taskList;
+    private TasksViewModel tasksViewModel;
 
-    MyAdapter(int numberOfItems, ArrayList<String> TaskList, Database dbHelper) {
-        mNumberItems = numberOfItems;
-        taskList = TaskList;
-        this.dbHelper = dbHelper;
+    public MyAdapter(List<Tasks> taskList, TasksViewModel tasksViewModel) {
+        this.taskList = (ArrayList<Tasks>) taskList;
+        this.tasksViewModel = tasksViewModel;
+    }
+
+    public void setTaskList(ArrayList<Tasks> taskList) {
+        this.taskList = taskList;
     }
 
     @NonNull
@@ -42,14 +49,22 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
+    public void onBindViewHolder(final MyViewHolder holder, final int position) {
         Log.d(TAG, "#" + position);
-        holder.bind(taskList.get(position));
+        holder.bind(taskList.get(position).name);
+        holder.button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tasksViewModel.setInactive(taskList.get(holder.getAdapterPosition()).id);
+                taskList.remove(holder.getAdapterPosition());
+                notifyItemRemoved(holder.getAdapterPosition());
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return mNumberItems;
+        return taskList.size();
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder {
@@ -60,17 +75,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
             super(itemView);
             listItemNumberView = itemView.findViewById(R.id.task_title);
             button = itemView.findViewById(R.id.deleteBtn);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String task = String.valueOf(listItemNumberView.getText());
-                    dbHelper.deleteTask(task);
-                    mNumberItems--;
-                    int removedIndex = taskList.indexOf(task);
-                    taskList.remove(removedIndex);
-                    notifyItemRemoved(removedIndex);
-                }
-            });
         }
 
         void bind(String todo) {
